@@ -29,7 +29,7 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 $plugin_info = array(  	'pi_name' => 'TweetLine',
-					    'pi_version' => '2.3',
+					    'pi_version' => '2.4',
 					    'pi_author' => 'David Dexter',
 					    'pi_author_url' => 'http://www.brilliant2.com',
 					    'pi_description' => 'TweetLine returns a set of status tweets for a given user. Developed for EE 2.0+ (Requires Curl on the server)',
@@ -119,37 +119,41 @@ class Tweetline
 				// Build the parse variables
 		
 					$i = 1;
-					foreach($xml["channel"]["item"] as $items){
-						$show = true;
-						$post = substr($items["title"],strlen($username)+2);
-						
-						if(substr($post,0,1) == '@'){
-							if($mentions != 'yes'){
-								$show = false;
-							}
-						}else if(substr($post,0,2) == 'RT'){
-							if($retweets != 'yes'){
-								$show = false;
-							}
-						}
-						if($show == true){
-							if($i <= $limit){
-								$link = (array)$items["link"];
-								$post = substr($items["title"],strlen($username)+2);
-								if($auto_format == 'yes'){
-									$post = preg_replace("/(http:\/\/|(www\.))(([^\s<]{4,68})[^\s<]*)/", '<a href="http://$2$3" target="_blank">$1$2$4</a>', $post);
-									$post = preg_replace("/@(\w+)/", '<a href="http://www.twitter.com/\1" target="_blank">@\\1</a>', $post);
-									$post = preg_replace("/#(\w+)/", '<a href="http://search.twitter.com/search?q=\1" target="_blank">#\\1</a>', $post);
+					if(isset($xml["channel"])){
+						foreach($xml["channel"]["item"] as $items){
+							$show = true;
+							$post = substr($items["title"],strlen($username)+2);
+							
+							if(substr($post,0,1) == '@'){
+								if($mentions != 'yes'){
+									$show = false;
 								}
-								$variables[] = array(
-									'post' => $post,
-									'link' 	=> $link[0], 
-									'date' 	=> date("U",strtotime($items["pubDate"])),    
-									'rel_date' => $this->_build_relative_time(date("U",strtotime($items["pubDate"])))
-									);					
+							}else if(substr($post,0,2) == 'RT'){
+								if($retweets != 'yes'){
+									$show = false;
+								}
 							}
-							$i++;
+							if($show == true){
+								if($i <= $limit){
+									$link = (array)$items["link"];
+									$post = substr($items["title"],strlen($username)+2);
+									if($auto_format == 'yes'){
+										$post = preg_replace("/(http:\/\/|(www\.))(([^\s<]{4,68})[^\s<]*)/", '<a href="http://$2$3" target="_blank">$1$2$4</a>', $post);
+										$post = preg_replace("/@(\w+)/", '<a href="http://www.twitter.com/\1" target="_blank">@\\1</a>', $post);
+										$post = preg_replace("/#(\w+)/", '<a href="http://search.twitter.com/search?q=\1" target="_blank">#\\1</a>', $post);
+									}
+									$variables[] = array(
+										'post' => $post,
+										'link' 	=> $link[0], 
+										'date' 	=> date("U",strtotime($items["pubDate"])),    
+										'rel_date' => $this->_build_relative_time(date("U",strtotime($items["pubDate"])))
+										);					
+								}
+								$i++;
+							}
 						}
+					}else{
+						return '';
 					}
 				}
 						
